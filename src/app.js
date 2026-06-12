@@ -1,23 +1,26 @@
 import express from "express"
 import cors from "cors"
 import morgan from "morgan"
-import connectDB  from "./config/db.js"
-
+import cookieParser from "cookie-parser"
+import authRoutes from "./routes/auth.routes.js"
 
 const app = express();
 
-// middleware
+// Middleware
 app.use(cors())
 app.use(morgan("dev"))
 app.use(express.json())
+app.use(cookieParser())
 
-// test route
-app.get("/", (req,res) => {
+// Routes
+app.use("/api/v1/auth", authRoutes)
+
+// Test route
+app.get("/", (req, res) => {
     res.json({
-        success : true,
-        message : "Recipe Sharing API Running"
+        success: true,
+        message: "Recipe Sharing API Running"
     })
 })
 
 export default app;
-

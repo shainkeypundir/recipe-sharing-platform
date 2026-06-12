@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema({
-    userName : {
+    username : {
         type : String,
         required : [true, "User name is required"],
         unique : true,
