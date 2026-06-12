@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken"
 
 const signup = async (req , res) => {
     // daata lo
-    const {username, email, password} = req.body
+    const {username, email, password} = req.body;
     // validate
     if(!username || !email || !password){
         return res.status(400).json({
@@ -33,15 +33,41 @@ const user = await User.create({
 
 //extract the safe user
 
-const user = await User.findById(user._id).select("-password -refreshToken")
+const safeUser = await User.findById(user._id).select("-password -refreshToken");
 
-// ab mera user bnn gaya h now , create access + refresh token
+// ab mera user db me bnn gaya h now , create access + refresh token
 
 const accessToken = user.generateAccessToken();
-const refreshToken = user.generateRefreshToken();
+const refreshToken = user.generateRefreshToken(); // create the refresh token
 
 //refresh token db me save kro
-user.refreshToken = refreshToken
-await user.save({validateBeforeSave : false})
+user.refreshToken = refreshToken // assign the token
+await user.save({validateBeforeSave : false}) // save the token in the db
+
+// cookie me refrsh and aaccess token daalo
+
+const cookieOptions = {
+    httpOnly : true,
+    secure : process.env.NODE_ENV === "production"
+}
+
+res
+.cookie("accessToken", accessToken , {
+    ...cookieOptions, // ... -> means iss object ki saare cheezien yaha daal do
+    maxAge : 15*60*1000
+})
+.cookie(refreshToken, refreshToken, {
+    ...cookieOptions,
+    maxAge : 7*24*60*60*1000
+})
+
+// response
+return res.status(201).json({
+    success : true,
+    message : "registered successfully",
+    user : safeUser,
+    accessToken
+})
+
 
 export {signup};
