@@ -161,4 +161,35 @@ catch (error ){
 }
 }
 
-export {signup, login} 
+const logout = async (req, res) => {
+    try{
+        await User.findByIdAndUpdate(
+            req.user._id,
+            {refreshToken : ""}
+        )
+
+        // cookies clear kro
+
+        const cookieOptions = {
+            httpOnly : true,
+            secure : process.env.NODE_ENV === "production"
+        }
+
+        return res
+        .clearCookie("accessToken", cookieOptions)
+        .clearCookie("refreshToken", cookieOptions)
+        .status(200)
+        .json({
+            success : true,
+            message : "logged out successfully"
+        })
+    }
+    catch (error) {
+        return res.status(500).json({
+            success : false, 
+            message : error.message
+        })
+    }
+}
+
+export {signup, login , logout} 
