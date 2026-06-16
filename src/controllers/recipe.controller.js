@@ -1,7 +1,11 @@
 import Recipe from "../models/recipe.model.js"
+import { uploadOnCloudinary } from "../utils/cloudinary.utils.js"
 
 const createRecipe = async (req , res) =>{
     try{
+
+        console.log("Body:", req.body)
+        console.log("File:", req.file) 
         // data lo
         const  {title, description,ingredients, instructions,cuisine,mealType, dietaryTags} = req.body
 
@@ -13,8 +17,14 @@ const createRecipe = async (req , res) =>{
             })
         }
 
-        // create new recipe
+        // imgae upload kro
+        let imageurl = ""
+        if(req.file){
+            const uploaded = await uploadOnCloudinary(req.file.path)
+            imageurl = uploaded?.url || ""
+        }
 
+        // create new recipe
         const recipe = await Recipe.create({
             title,
             ingredients,
@@ -22,6 +32,7 @@ const createRecipe = async (req , res) =>{
             cuisine,
             mealType,
             dietaryTags,
+            image : imageurl,
             createdBy : req.user._id
         })
 
