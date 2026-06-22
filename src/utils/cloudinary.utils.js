@@ -18,7 +18,7 @@ const uploadOnCloudinary = async (localFilePath) => {
         return response
     }
     catch(error){
-        // upload fail hue delete the fiel
+        // upload fail hue delete the file
         console.error("Cloudniary error", error.message)
         fs.unlinkSync(localFilePath)
         return null
