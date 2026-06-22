@@ -1,7 +1,11 @@
 import Recipe from "../models/recipe.model.js"
+import { uploadOnCloudinary } from "../utils/cloudinary.utils.js"
 
 const createRecipe = async (req , res) =>{
     try{
+
+        console.log("Body:", req.body)
+        console.log("File:", req.file) 
         // data lo
         const  {title, description,ingredients, instructions,cuisine,mealType, dietaryTags} = req.body
 
@@ -13,8 +17,14 @@ const createRecipe = async (req , res) =>{
             })
         }
 
-        // create new recipe
+        // imgae upload kro
+        let imageurl = ""
+        if(req.file){
+            const uploaded = await uploadOnCloudinary(req.file.path)
+            imageurl = uploaded?.url || ""
+        }
 
+        // create new recipe
         const recipe = await Recipe.create({
             title,
             ingredients,
@@ -22,6 +32,7 @@ const createRecipe = async (req , res) =>{
             cuisine,
             mealType,
             dietaryTags,
+            image : imageurl,
             createdBy : req.user._id
         })
 
@@ -44,7 +55,23 @@ const createRecipe = async (req , res) =>{
 
 const getAllRecipes = async (req, res) =>{
     try{
-        const recipes = await Recipe.find();
+        const {search, cuisine, dietaryTags} = req.query;
+
+        const filter = {}
+
+        if(search){
+            filter.title = {$regex : search, $options : "i"}
+        }
+
+        if(cuisine){
+            filter.cuisine = {$regex : cuisine, $options : "i"}
+        }
+
+        if(dietaryTags){
+            filter.dietaryTags = {$in : [dietaryTags]}
+        }
+
+        const recipes = await Recipe.find(filter);
 
         return res.status(200).json({
             success : true,
@@ -110,7 +137,7 @@ const updateRecipe = async (req, res) => {
     }
 
     // update the recipe
-    const updateRecipe = await Recipe.findByIdAndUpdate(
+    const updatedRecipe = await Recipe.findByIdAndUpdate(
         id,
         {title, description,ingredients,instructions, cuisine, mealType,dietaryTags},
         {new : true}
